@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from importlib import resources
-import json
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -123,7 +123,10 @@ def _fetch_latest_release(url: str, timeout: float) -> Mapping[str, Any]:
         },
     )
     with urlopen(request, timeout=timeout) as response:
-        return json.loads(response.read().decode("utf-8"))
+        payload: object = json.loads(response.read().decode("utf-8"))
+    if not isinstance(payload, dict):
+        return {}
+    return payload
 
 
 def _clean_version(version: str) -> str:

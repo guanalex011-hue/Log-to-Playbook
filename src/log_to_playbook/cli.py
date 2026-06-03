@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict
 import json
 import sys
+from dataclasses import asdict
 from pathlib import Path
 
 from log_to_playbook import __version__

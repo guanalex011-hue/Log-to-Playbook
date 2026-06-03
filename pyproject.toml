@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "log-to-playbook"
-version = "0.1.2"
+version = "0.2.0"
 description = "Turn logs and stack traces into practical debugging playbooks."
 readme = "README.md"
 requires-python = ">=3.10"

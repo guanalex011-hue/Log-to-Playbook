@@ -68,7 +68,7 @@ def test_cli_update_info_can_run_without_network() -> None:
     result = run_cli("update-info", "--no-network")
 
     assert result.returncode == 0
-    assert "Current version: 0.1.2" in result.stdout
+    assert "Current version: 0.2.0" in result.stdout
     assert "Latest version: not checked" in result.stdout
     assert "Changelog:" in result.stdout
 

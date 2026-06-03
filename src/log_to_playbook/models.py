@@ -32,7 +32,7 @@ class RedactionResult:
     findings: dict[str, int]
 
 
-@dataclass(frozen=True)
+@dataclass
 class AnalysisResult:
     detected_id: str | None
     title: str
@@ -47,3 +47,4 @@ class AnalysisResult:
     matched_patterns: list[str]
     redactions: dict[str, int]
     redacted_log: str | None = None
+    ai_suggestion: str | None = None

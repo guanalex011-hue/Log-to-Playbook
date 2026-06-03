@@ -21,6 +21,8 @@ def result_to_dict(result: AnalysisResult) -> dict[str, object]:
         "matched_patterns": result.matched_patterns,
         "redactions": result.redactions,
     }
+    if result.ai_suggestion is not None:
+        payload["ai_suggestion"] = result.ai_suggestion
     if result.redacted_log is not None:
         payload["redacted_log"] = result.redacted_log
     return payload
@@ -85,6 +87,9 @@ def render_markdown(result: AnalysisResult) -> str:
         lines.extend(["", "## References", ""])
         lines.extend(f"- {reference}" for reference in result.references)
 
+    if result.ai_suggestion:
+        lines.extend(["", "## AI Suggestion", "", result.ai_suggestion])
+
     if result.redactions:
         lines.extend(["", "## Redactions", ""])
         lines.extend(
@@ -125,5 +130,8 @@ def render_text(result: AnalysisResult) -> str:
     if result.avoid:
         lines.extend(["", "Risk notes:"])
         lines.extend(f"- {item}" for item in result.avoid)
+
+    if result.ai_suggestion:
+        lines.extend(["", "AI Suggestion:", result.ai_suggestion])
 
     return "\n".join(lines)

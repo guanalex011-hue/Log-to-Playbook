@@ -6,79 +6,25 @@ Paste an error. Get a checklist.
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-Log-to-Playbook is a local-first CLI tool that turns error logs, stack traces,
-terminal output, and deployment failures into practical debugging playbooks.
+Log-to-Playbook is a local-first CLI tool that turns logs, stack traces, terminal output, and deploy failures into practical debugging checklists.
 
-It is designed to help developers, sysadmins, students, support teams, and AI
-coding agents move from "what does this error mean?" to a safer first diagnosis
-checklist.
+It helps you answer:
 
-## Why It Exists
+- What probably failed?
+- What should I check first?
+- Which commands are safe to run?
+- How risky is the next step?
+- Which playbook matched this log?
 
-Logs are often long, noisy, and difficult to act on. Log-to-Playbook detects
-known failure patterns and returns:
+It works without AI. Built-in YAML playbooks do the matching, so your logs can stay on your machine.
 
-- a short diagnosis
-- likely causes
-- a step-by-step checklist
-- safe diagnostic commands
-- a risk label
-- matched playbook references
+## Quick Start
 
-The base system works without AI by using built-in YAML playbooks. AI can be
-added later as an explanation layer, but pattern-based diagnosis remains the
-source of truth.
-
-## Product Principles
-
-- **Local-first:** logs do not need to leave your machine.
-- **Pattern-first:** the MVP works without an AI provider.
-- **AI-optional:** AI suggestions must be clearly labeled as suggestions.
-- **Safe by default:** destructive commands should not be suggested as a first
-  step.
-- **Reusable:** every diagnosis pattern can become a playbook.
-- **Transparent:** users can inspect which playbook matched their log.
-
-## Current Version
-
-The current implementation is versioned as **v0.1.1**.
-
-MVP capabilities:
-
-- `log2playbook analyze` for files and stdin
-- built-in YAML playbooks across Laravel/PHP, Docker, Node.js/npm,
-  Python/pip, and Linux server basics
-- text, Markdown, and JSON output
-- confidence scoring
-- risk labels
-- command suggestions
-- secret redaction before analysis output
-- playbook validation
-- release workflow and changelog
-
-## Installation
-
-For local development:
+Install from GitHub:
 
 ```bash
-python -m pip install -e ".[dev]"
+python -m pip install "log-to-playbook @ git+https://github.com/guanalex011-hue/Log-to-Playbook.git@v0.1.1"
 ```
-
-After installation, the CLI is available as:
-
-```bash
-log2playbook --version
-```
-
-## Documentation
-
-- [Usage guide](docs/usage.md)
-- [Playbook authoring guide](docs/playbook-authoring.md)
-- [Release process](RELEASE.md)
-- [Contributing guide](CONTRIBUTING.md)
-- [Security policy](SECURITY.md)
-
-## Usage
 
 Analyze a log file:
 
@@ -86,40 +32,16 @@ Analyze a log file:
 log2playbook analyze ./error.log
 ```
 
-Read from stdin:
+Or pipe a log directly:
 
 ```bash
-cat ./error.log | log2playbook analyze -
+echo "ModuleNotFoundError: No module named 'pandas'" | log2playbook analyze -
 ```
 
-Render Markdown:
+If `log2playbook` is not on your PATH, use:
 
 ```bash
-log2playbook analyze ./error.log --format markdown
-```
-
-Render JSON:
-
-```bash
-log2playbook analyze ./error.log --format json
-```
-
-Filter by category:
-
-```bash
-log2playbook analyze ./error.log --category docker
-```
-
-Validate built-in playbooks:
-
-```bash
-log2playbook validate-playbooks
-```
-
-Create a starter playbook:
-
-```bash
-log2playbook new-playbook
+python -m log_to_playbook.cli analyze ./error.log
 ```
 
 ## Example
@@ -128,6 +50,12 @@ Input:
 
 ```text
 Error starting userland proxy: listen tcp4 0.0.0.0:80: bind: address already in use
+```
+
+Command:
+
+```bash
+log2playbook analyze ./error.log --format markdown
 ```
 
 Output:
@@ -142,7 +70,7 @@ Docker failed to start because the requested host port is already in use.
 ## Detected Pattern
 
 - Docker port conflict
-- Confidence: 0.92
+- Confidence: 0.99
 - Risk: medium
 
 ## Likely Causes
@@ -155,123 +83,101 @@ Docker failed to start because the requested host port is already in use.
 
 1. Check which process owns the port.
    `sudo lsof -i :80`
+   Risk: low
 2. Check running containers.
    `docker ps`
-
-## Risk Notes
-
-Stopping a production host service can interrupt live traffic.
+   Risk: low
 ```
 
-## Playbook Format
+## Common Commands
 
-Playbooks are YAML files. Each playbook defines the patterns to match, the
-diagnosis, safe checks, risk notes, and references.
+| Goal | Command |
+| --- | --- |
+| Analyze a file | `log2playbook analyze ./error.log` |
+| Analyze stdin | `cat ./error.log \| log2playbook analyze -` |
+| Output Markdown | `log2playbook analyze ./error.log --format markdown` |
+| Output JSON | `log2playbook analyze ./error.log --format json` |
+| Filter by category | `log2playbook analyze ./error.log --category docker` |
+| Redact emails too | `log2playbook analyze ./error.log --privacy` |
+| Export a report | `log2playbook analyze ./error.log --format markdown --output report.md` |
+| Validate playbooks | `log2playbook validate-playbooks` |
+| Create a playbook template | `log2playbook new-playbook` |
 
-```yaml
-id: docker-port-conflict
-title: Docker port conflict
-category: docker
-severity: medium
-risk: medium
+## Supported Categories
 
-patterns:
-  - "bind: address already in use"
-  - "port is already allocated"
-  - "Error starting userland proxy"
+The current MVP ships with 30 built-in playbooks across:
 
-keywords:
-  - docker
-  - port
-  - bind
+- Docker
+- Laravel/PHP
+- Linux server basics
+- Node.js/npm
+- Python/pip
 
-summary: >
-  Docker failed to start because the requested host port is already in use.
+More categories can be added by contributing YAML playbooks.
 
-causes:
-  - A host web server is already listening on the port.
-  - Another container is using the same host port.
-  - A previous service did not stop cleanly.
+## Output Formats
 
-checks:
-  - label: Check which process owns the port
-    command: "sudo lsof -i :80"
-    risk: low
-  - label: Check running containers
-    command: "docker ps"
-    risk: low
+Use the format that fits your workflow:
 
-avoid:
-  - "Do not kill a production process before identifying what service owns it."
+- `text` for terminal reading
+- `markdown` for reports, issues, and documentation
+- `json` for automation and AI coding agents
 
-references:
-  - "https://docs.docker.com/"
+Example:
+
+```bash
+log2playbook analyze ./error.log --format json
 ```
 
-## Architecture
+## Safety and Privacy
 
-```text
-src/log_to_playbook/
-  analyzer.py      # analysis orchestration
-  cli.py           # command-line interface
-  loader.py        # YAML playbook loading and validation
-  matcher.py       # pattern scoring and ranking
-  models.py        # typed result/playbook models
-  normalizer.py    # log cleanup
-  redactor.py      # secret redaction
-  renderer.py      # text, Markdown, and JSON output
-  playbooks/       # built-in YAML playbooks
+Log-to-Playbook is designed to be safe by default:
+
+- Logs are analyzed locally.
+- Basic secrets are redacted before output.
+- Diagnostic commands include risk labels.
+- Built-in playbooks should prefer read-only checks first.
+- Destructive commands should not be suggested as the first step.
+
+Redacted values include API keys, bearer tokens, password-like environment variables, private key blocks, database URLs, and optional email addresses when `--privacy` is enabled.
+
+## Development Setup
+
+Clone the repository:
+
+```bash
+git clone https://github.com/guanalex011-hue/Log-to-Playbook.git
+cd Log-to-Playbook
 ```
 
-## Matching Model
+Install development dependencies:
 
-The MVP uses a transparent scoring model:
-
-```text
-score = exact_pattern_score
-      + regex_pattern_score
-      + keyword_score
-      + category_hint_score
-      - ambiguity_penalty
+```bash
+python -m pip install -e ".[dev]"
 ```
 
-The result includes a confidence score so users can tell whether the diagnosis
-is strong or only a rough lead.
+Run checks:
 
-## Safety
+```bash
+python -m ruff check .
+python -m mypy src
+python -m pytest --cov=log_to_playbook --cov-report=term-missing --cov-fail-under=80
+python -m build
+```
 
-Log-to-Playbook redacts common secrets before rendering output or preparing data
-for future AI-assisted modes:
+## Documentation
 
-- API keys
-- bearer tokens
-- password-like environment variables
-- private key blocks
-- database URLs
-- optional email addresses when privacy mode is enabled
+- [Usage guide](docs/usage.md)
+- [Playbook authoring guide](docs/playbook-authoring.md)
+- [Contributing guide](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
+- [Release process](RELEASE.md)
 
-Diagnostic commands include per-step risk labels. Destructive commands should be
-kept out of built-in playbooks unless they are clearly marked and avoidable.
+## Project Status
 
-## Release
+Current version: `0.1.1`
 
-The project uses semantic versioning. The current release line starts at
-`0.1.x`.
-
-Release files:
-
-- `CHANGELOG.md` records user-facing changes.
-- `RELEASE.md` documents the release process.
-- `.github/workflows/ci.yml` runs tests and linting.
-- `.github/workflows/release.yml` builds release artifacts for version tags.
-
-## Roadmap
-
-- **Phase 1:** CLI MVP, built-in playbooks, Markdown/JSON output, redaction.
-- **Phase 2:** local web UI for paste/upload/export workflows.
-- **Phase 3:** optional AI explanations and draft playbook generation.
-- **Phase 4:** GitHub Action, Docker image, VS Code extension, and chat
-  integrations.
+This is an early MVP. The core CLI, built-in playbooks, redaction, output renderers, package metadata, examples, and release artifacts are in place. The next major additions are a local web UI, optional AI explanations, and integrations such as GitHub Actions and editor extensions.
 
 ## License
 

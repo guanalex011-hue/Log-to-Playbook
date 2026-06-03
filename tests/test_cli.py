@@ -1,15 +1,23 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
 
 
 def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(SRC)
     return subprocess.run(
         [sys.executable, "-m", "log_to_playbook.cli", *args],
         check=False,
         capture_output=True,
+        env=env,
         text=True,
     )
 

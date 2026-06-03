@@ -1,0 +1,820 @@
+- id: docker-port-conflict
+  title: Docker port conflict
+  category: docker
+  severity: medium
+  risk: medium
+  patterns:
+    - "bind: address already in use"
+    - "port is already allocated"
+    - "Error starting userland proxy"
+  keywords:
+    - docker
+    - port
+    - bind
+  summary: Docker failed to start because the requested host port is already in use.
+  causes:
+    - A host web server is already listening on the port.
+    - Another container is using the same host port.
+    - A previous service did not stop cleanly.
+  checks:
+    - label: Check which process owns the port
+      command: "sudo lsof -i :80"
+      risk: low
+    - label: Check running containers
+      command: "docker ps"
+      risk: low
+    - label: Change the container port mapping if needed
+      command: "docker run -p 8080:80 image-name"
+      risk: low
+  avoid:
+    - Do not stop a production host service before identifying what owns the port.
+  references:
+    - "https://docs.docker.com/"
+
+- id: docker-daemon-not-running
+  title: Docker daemon not running
+  category: docker
+  severity: medium
+  risk: low
+  patterns:
+    - "Cannot connect to the Docker daemon"
+    - "Is the docker daemon running"
+  keywords:
+    - docker
+    - daemon
+  summary: The Docker client cannot reach a running Docker daemon.
+  causes:
+    - Docker service is stopped.
+    - The current user cannot access the Docker socket.
+    - Docker Desktop has not finished starting.
+  checks:
+    - label: Check Docker service status
+      command: "systemctl status docker"
+      risk: low
+    - label: Check Docker version and connectivity
+      command: "docker version"
+      risk: low
+  avoid:
+    - Do not reinstall Docker before checking the service and socket first.
+
+- id: docker-build-no-space-left
+  title: Docker build disk full
+  category: docker
+  severity: high
+  risk: medium
+  patterns:
+    - "no space left on device"
+    - "failed to copy files"
+  keywords:
+    - docker
+    - build
+    - layer
+  summary: Docker failed while building or writing layers because the host has insufficient free disk space.
+  causes:
+    - Docker image and build cache usage is too high.
+    - The filesystem backing Docker is full.
+    - Build output is larger than expected.
+  checks:
+    - label: Check Docker disk usage
+      command: "docker system df"
+      risk: low
+    - label: Check filesystem usage
+      command: "df -h"
+      risk: low
+  avoid:
+    - Do not prune all Docker data on production without checking active containers and volumes.
+
+- id: docker-container-exited
+  title: Docker container exited immediately
+  category: docker
+  severity: medium
+  risk: low
+  patterns:
+    - "Exited (1)"
+    - "container exited"
+  keywords:
+    - docker
+    - container
+    - exited
+  summary: A container started but exited because the main process failed or completed.
+  causes:
+    - The application command crashed.
+    - Required environment variables are missing.
+    - The image entrypoint is incorrect.
+  checks:
+    - label: Inspect recent container logs
+      command: "docker logs <container>"
+      risk: low
+    - label: Inspect container configuration
+      command: "docker inspect <container>"
+      risk: low
+  avoid:
+    - Do not restart in a tight loop without checking the first failure log.
+
+- id: docker-permission-denied-socket
+  title: Docker socket permission denied
+  category: docker
+  severity: medium
+  risk: medium
+  patterns:
+    - "permission denied while trying to connect to the Docker daemon socket"
+    - "dial unix /var/run/docker.sock: connect: permission denied"
+  keywords:
+    - docker.sock
+    - permission
+  summary: The current user cannot access the Docker daemon socket.
+  causes:
+    - The user is not in the docker group.
+    - The command is running in a restricted CI environment.
+    - Socket permissions were changed.
+  checks:
+    - label: Check socket permissions
+      command: "ls -l /var/run/docker.sock"
+      risk: low
+    - label: Check current groups
+      command: "id"
+      risk: low
+  avoid:
+    - Do not chmod the Docker socket broadly on shared hosts.
+
+- id: docker-compose-env-file-missing
+  title: Docker Compose env file missing
+  category: docker
+  severity: low
+  risk: low
+  patterns:
+    - "env file"
+    - "not found"
+  keywords:
+    - docker compose
+    - compose
+    - .env
+  summary: Docker Compose cannot find an expected environment file.
+  causes:
+    - "The `.env` file was not copied to the host."
+    - The compose file references the wrong path.
+    - CI did not create required environment variables.
+  checks:
+    - label: List compose files and env files
+      command: "ls -la"
+      risk: low
+    - label: Validate compose configuration
+      command: "docker compose config"
+      risk: low
+  avoid:
+    - Do not commit real production secrets just to satisfy the missing env file.
+
+- id: laravel-mysql-missing-default
+  title: Laravel MySQL missing required field
+  category: laravel
+  severity: low
+  risk: low
+  patterns:
+    - "SQLSTATE[HY000]"
+    - "General error: 1364"
+    - "doesn't have a default value"
+  keywords:
+    - laravel
+    - mysql
+    - fillable
+  summary: A required database column did not receive a value and has no database default.
+  causes:
+    - The request payload is missing a required field.
+    - The Eloquent model blocks assignment through fillable or guarded settings.
+    - The migration should allow null or define a default.
+  checks:
+    - label: Inspect the request payload
+      command: "php artisan route:list"
+      risk: low
+    - label: Check model fillable and guarded properties
+      command: "grep -R \"fillable\\|guarded\" app/Models"
+      risk: low
+    - label: Inspect the relevant migration
+      command: "grep -R \"name\" database/migrations"
+      risk: low
+  avoid:
+    - Do not add nullable/default values in production before confirming domain requirements.
+
+- id: laravel-queue-max-attempts
+  title: Laravel queue max attempts exceeded
+  category: laravel
+  severity: medium
+  risk: medium
+  patterns:
+    - "MaxAttemptsExceededException"
+    - "has been attempted too many times"
+  keywords:
+    - laravel
+    - queue
+    - job
+  summary: A Laravel queued job failed repeatedly until it exceeded its retry limit.
+  causes:
+    - Job logic throws an exception.
+    - An external dependency is timing out.
+    - The queued payload is invalid or stale.
+  checks:
+    - label: List failed jobs
+      command: "php artisan queue:failed"
+      risk: low
+    - label: Restart workers after deploy
+      command: "php artisan queue:restart"
+      risk: low
+  avoid:
+    - Do not retry many failed jobs before fixing the first exception cause.
+
+- id: laravel-migration-table-exists
+  title: Laravel migration table already exists
+  category: laravel
+  severity: medium
+  risk: medium
+  patterns:
+    - "Base table or view already exists"
+    - "SQLSTATE[42S01]"
+  keywords:
+    - laravel
+    - migration
+  summary: A migration attempted to create a table that already exists.
+  causes:
+    - Migration state is out of sync with the database.
+    - A table was created manually.
+    - A migration was renamed or duplicated.
+  checks:
+    - label: Check migration status
+      command: "php artisan migrate:status"
+      risk: low
+    - label: Inspect table existence
+      command: "php artisan tinker"
+      risk: low
+  avoid:
+    - Do not drop production tables to make migrations pass.
+
+- id: laravel-storage-permission-denied
+  title: Laravel storage permission denied
+  category: laravel
+  severity: medium
+  risk: medium
+  patterns:
+    - "The stream or file"
+    - "storage/logs/laravel.log"
+    - "Permission denied"
+  keywords:
+    - laravel
+    - storage
+    - permission
+  summary: Laravel cannot write to storage or cache paths because filesystem permissions are wrong.
+  causes:
+    - The web server user does not own writable directories.
+    - A deploy ran as another user.
+    - Storage or cache directories are missing.
+  checks:
+    - label: Check storage ownership
+      command: "ls -la storage bootstrap/cache"
+      risk: low
+    - label: Check current web server user
+      command: "ps aux | grep -E 'nginx|apache|php-fpm'"
+      risk: low
+  avoid:
+    - Do not use chmod 777 as a default fix.
+
+- id: laravel-class-not-found
+  title: Laravel class not found
+  category: laravel
+  severity: low
+  risk: low
+  patterns:
+    - "Class"
+    - "not found"
+  keywords:
+    - laravel
+    - composer
+    - autoload
+  summary: PHP autoloading cannot find a referenced class.
+  causes:
+    - The namespace or file path is wrong.
+    - Composer autoload files are stale.
+    - The class was not deployed.
+  checks:
+    - label: Regenerate Composer autoload files
+      command: "composer dump-autoload"
+      risk: low
+    - label: Search for the class definition
+      command: "grep -R \"class ClassName\" app"
+      risk: low
+  avoid:
+    - Do not clear all caches before confirming the class exists in the deployed code.
+
+- id: laravel-app-key-missing
+  title: Laravel application key missing
+  category: laravel
+  severity: high
+  risk: medium
+  patterns:
+    - "No application encryption key has been specified"
+  keywords:
+    - laravel
+    - app_key
+    - encryption
+  summary: Laravel cannot encrypt or decrypt values because APP_KEY is missing.
+  causes:
+    - "`.env` does not contain APP_KEY."
+    - Config cache was built with missing environment values.
+    - The deployment environment did not inject secrets.
+  checks:
+    - label: Check APP_KEY without printing the secret
+      command: "php artisan env"
+      risk: low
+    - label: Clear stale config cache after fixing environment
+      command: "php artisan config:clear"
+      risk: low
+  avoid:
+    - Do not rotate APP_KEY on an existing production app without a migration plan for encrypted data.
+
+- id: node-npm-dependency-conflict
+  title: Node npm dependency conflict
+  category: node
+  severity: medium
+  risk: low
+  patterns:
+    - "npm ERR! ERESOLVE"
+    - "unable to resolve dependency tree"
+  keywords:
+    - npm
+    - dependency
+    - peer
+  summary: npm cannot resolve compatible dependency or peer dependency versions.
+  causes:
+    - Package versions declare incompatible peer dependencies.
+    - The lockfile was generated with a different dependency set.
+    - A package upgrade requires another package upgrade.
+  checks:
+    - label: Inspect the dependency tree
+      command: "npm ls"
+      risk: low
+    - label: Check outdated packages
+      command: "npm outdated"
+      risk: low
+  avoid:
+    - Avoid --force or --legacy-peer-deps until you understand the incompatible package pair.
+
+- id: node-module-not-found
+  title: Node module not found
+  category: node
+  severity: low
+  risk: low
+  patterns:
+    - "Cannot find module"
+    - "ERR_MODULE_NOT_FOUND"
+  keywords:
+    - node
+    - module
+  summary: Node.js cannot resolve an imported package or local module.
+  causes:
+    - Dependencies were not installed.
+    - The import path is wrong.
+    - ESM and CommonJS module resolution are mixed incorrectly.
+  checks:
+    - label: Install dependencies
+      command: "npm install"
+      risk: low
+    - label: Check package entrypoints
+      command: "node -p \"require('./package.json')\""
+      risk: low
+  avoid:
+    - Do not delete lockfiles blindly before checking whether the module is listed in package.json.
+
+- id: node-port-in-use
+  title: Node server port already in use
+  category: node
+  severity: low
+  risk: low
+  patterns:
+    - "EADDRINUSE"
+    - "address already in use"
+  keywords:
+    - node
+    - port
+  summary: A Node server cannot bind to a port because another process is already using it.
+  causes:
+    - A previous dev server is still running.
+    - Another service is bound to the same port.
+    - The configured port is shared by multiple apps.
+  checks:
+    - label: Find the process using the port
+      command: "lsof -i :3000"
+      risk: low
+    - label: Try a different port
+      command: "PORT=3001 npm run dev"
+      risk: low
+  avoid:
+    - Do not kill a process before checking what application owns it.
+
+- id: node-engine-unsupported
+  title: Node engine unsupported
+  category: node
+  severity: medium
+  risk: low
+  patterns:
+    - "Unsupported engine"
+    - "The engine \"node\" is incompatible"
+  keywords:
+    - node
+    - engine
+    - version
+  summary: The installed Node.js version does not satisfy the package engine requirement.
+  causes:
+    - The project requires a newer or older Node version.
+    - CI uses a different Node version from local development.
+    - A package upgrade changed engine constraints.
+  checks:
+    - label: Check Node version
+      command: "node --version"
+      risk: low
+    - label: Inspect package engine requirements
+      command: "cat package.json"
+      risk: low
+  avoid:
+    - Do not bypass engine checks in CI without confirming runtime compatibility.
+
+- id: node-npm-permission-denied
+  title: npm permission denied
+  category: node
+  severity: medium
+  risk: medium
+  patterns:
+    - "EACCES"
+    - "permission denied"
+  keywords:
+    - npm
+    - permission
+    - cache
+  summary: npm cannot write to a directory because ownership or permissions are incorrect.
+  causes:
+    - Global packages were installed with sudo.
+    - npm cache ownership is wrong.
+    - The project directory is not writable by the current user.
+  checks:
+    - label: Check npm cache path
+      command: "npm config get cache"
+      risk: low
+    - label: Check current user and directory owner
+      command: "id && ls -la"
+      risk: low
+  avoid:
+    - Do not use sudo npm install inside project dependencies.
+
+- id: node-lockfile-conflict
+  title: Node lockfile conflict
+  category: node
+  severity: low
+  risk: low
+  patterns:
+    - "package-lock.json"
+    - "conflict"
+  keywords:
+    - npm
+    - lockfile
+    - merge
+  summary: The dependency lockfile has a merge conflict or is out of sync with package metadata.
+  causes:
+    - Two branches changed dependencies.
+    - package.json and lockfile were not updated together.
+    - A package manager mismatch generated incompatible lockfiles.
+  checks:
+    - label: Inspect dependency metadata
+      command: "git diff -- package.json package-lock.json"
+      risk: low
+    - label: Reinstall from package metadata
+      command: "npm install"
+      risk: low
+  avoid:
+    - Do not hand-edit large lockfile sections unless you understand the resolved dependency graph.
+
+- id: python-module-not-found
+  title: Python module not found
+  category: python
+  severity: low
+  risk: low
+  patterns:
+    - "ModuleNotFoundError: No module named"
+    - "ImportError: No module named"
+  keywords:
+    - python
+    - module
+    - import
+  summary: Python cannot import a required package in the active interpreter environment.
+  causes:
+    - The package is not installed.
+    - The wrong virtual environment is active.
+    - The script is using a different Python interpreter than expected.
+  checks:
+    - label: Check the active Python interpreter
+      command: "which python"
+      risk: low
+    - label: List installed packages
+      command: "python -m pip list"
+      risk: low
+    - label: Install the missing package
+      command: "python -m pip install <package>"
+      risk: low
+  avoid:
+    - Do not install globally when the project expects a virtual environment.
+
+- id: python-pip-resolution-impossible
+  title: pip dependency resolution impossible
+  category: python
+  severity: medium
+  risk: low
+  patterns:
+    - "ResolutionImpossible"
+    - "Cannot install"
+  keywords:
+    - pip
+    - dependency
+  summary: pip cannot find a dependency set that satisfies all version constraints.
+  causes:
+    - Requirements pin incompatible versions.
+    - A transitive dependency conflicts with a direct dependency.
+    - The Python version is unsupported by a required package.
+  checks:
+    - label: Inspect pinned requirements
+      command: "cat requirements.txt"
+      risk: low
+    - label: Check Python version
+      command: "python --version"
+      risk: low
+  avoid:
+    - Do not loosen all pins at once without checking which constraint conflicts.
+
+- id: python-venv-wrong-interpreter
+  title: Python wrong virtual environment
+  category: python
+  severity: low
+  risk: low
+  patterns:
+    - "No module named"
+    - "site-packages"
+  keywords:
+    - venv
+    - virtualenv
+    - python
+  summary: The command appears to be running with a different interpreter than the one where dependencies were installed.
+  causes:
+    - The virtual environment is not activated.
+    - The IDE or service uses another interpreter.
+    - Multiple Python versions are installed.
+  checks:
+    - label: Check interpreter path
+      command: "python -c \"import sys; print(sys.executable)\""
+      risk: low
+    - label: Check pip path
+      command: "python -m pip --version"
+      risk: low
+  avoid:
+    - "Do not mix `pip` from one interpreter with `python` from another."
+
+- id: python-syntax-error
+  title: Python syntax error
+  category: python
+  severity: low
+  risk: low
+  patterns:
+    - "SyntaxError"
+    - "invalid syntax"
+  keywords:
+    - python
+    - syntax
+  summary: Python could not parse the file because the source code contains invalid syntax for the active interpreter.
+  causes:
+    - There is a typo near the reported line.
+    - The code uses syntax from a newer Python version.
+    - A merge conflict marker remains in the file.
+  checks:
+    - label: Compile the file to confirm the syntax error
+      command: "python -m py_compile path/to/file.py"
+      risk: low
+    - label: Check Python version
+      command: "python --version"
+      risk: low
+  avoid:
+    - Do not edit unrelated files before reading the exact reported line and caret.
+
+- id: python-permission-denied
+  title: Python permission denied
+  category: python
+  severity: medium
+  risk: medium
+  patterns:
+    - "PermissionError"
+    - "Permission denied"
+  keywords:
+    - python
+    - permission
+  summary: Python attempted to read, write, or execute a path without sufficient filesystem permission.
+  causes:
+    - The target file is owned by another user.
+    - The process lacks write access to the directory.
+    - A service sandbox restricts the path.
+  checks:
+    - label: Check file ownership and mode
+      command: "ls -la path/to/file"
+      risk: low
+    - label: Check current user
+      command: "id"
+      risk: low
+  avoid:
+    - Do not recursively chmod broad directories as the first fix.
+
+- id: python-requirements-missing
+  title: Python requirements file missing
+  category: python
+  severity: low
+  risk: low
+  patterns:
+    - "Could not open requirements file"
+    - "No such file or directory: 'requirements.txt'"
+  keywords:
+    - pip
+    - requirements
+  summary: pip was asked to install dependencies from a requirements file that does not exist at the provided path.
+  causes:
+    - The command is running from the wrong directory.
+    - The requirements file has a different name.
+    - The file was not committed or copied.
+  checks:
+    - label: Confirm current directory
+      command: "pwd"
+      risk: low
+    - label: Locate requirements files
+      command: "find . -name '*requirements*.txt'"
+      risk: low
+  avoid:
+    - Do not create an empty requirements file just to make installation pass.
+
+- id: linux-disk-full
+  title: Linux disk full
+  category: linux
+  severity: high
+  risk: medium
+  patterns:
+    - "No space left on device"
+    - "disk full"
+  keywords:
+    - linux
+    - disk
+    - filesystem
+  summary: The host or target filesystem has run out of free space or inodes.
+  causes:
+    - Logs, caches, or Docker layers consumed disk space.
+    - The filesystem has free bytes but no free inodes.
+    - A mounted volume is smaller than expected.
+  checks:
+    - label: Check filesystem usage
+      command: "df -h"
+      risk: low
+    - label: Check inode usage
+      command: "df -i"
+      risk: low
+    - label: Find large top-level directories
+      command: "du -xh --max-depth=1 / | sort -h"
+      risk: low
+  avoid:
+    - Do not delete unknown production data before identifying ownership and backups.
+
+- id: linux-permission-denied
+  title: Linux permission denied
+  category: linux
+  severity: medium
+  risk: medium
+  patterns:
+    - "Permission denied"
+    - "EACCES"
+  keywords:
+    - permission
+    - linux
+  summary: A process attempted to access a path without the required filesystem permission.
+  causes:
+    - The file owner or group is different from the process user.
+    - Directory execute permissions are missing.
+    - A security policy such as SELinux or AppArmor blocks access.
+  checks:
+    - label: Check ownership and permissions
+      command: "ls -la <path>"
+      risk: low
+    - label: Check current user
+      command: "id"
+      risk: low
+  avoid:
+    - Do not use chmod 777 recursively as a default fix.
+
+- id: linux-nginx-502
+  title: Nginx 502 bad gateway
+  category: linux
+  severity: high
+  risk: medium
+  patterns:
+    - "502 Bad Gateway"
+    - "connect() failed"
+    - "upstream prematurely closed connection"
+  keywords:
+    - nginx
+    - upstream
+    - gateway
+  summary: Nginx could not get a valid response from the configured upstream service.
+  causes:
+    - The upstream app process is down.
+    - Nginx points to the wrong port or socket.
+    - The upstream app timed out or crashed.
+  checks:
+    - label: Check Nginx error log
+      command: "tail -n 100 /var/log/nginx/error.log"
+      risk: low
+    - label: Check upstream service status
+      command: "systemctl status <service>"
+      risk: low
+    - label: Test upstream locally
+      command: "curl -I http://127.0.0.1:<port>"
+      risk: low
+  avoid:
+    - Do not reload Nginx repeatedly before confirming upstream health.
+
+- id: linux-systemd-service-failed
+  title: systemd service failed
+  category: linux
+  severity: high
+  risk: medium
+  patterns:
+    - "Active: failed"
+    - "Main process exited"
+    - "Failed with result"
+  keywords:
+    - systemd
+    - service
+    - failed
+  summary: A systemd-managed service failed and needs inspection of its unit logs and recent process exit cause.
+  causes:
+    - The service command exits with an error.
+    - Environment variables or files are missing.
+    - The service user lacks required permissions.
+  checks:
+    - label: Inspect service status
+      command: "systemctl status <service>"
+      risk: low
+    - label: Inspect recent journal logs
+      command: "journalctl -u <service> -n 100 --no-pager"
+      risk: low
+  avoid:
+    - Do not enable restart loops before understanding the failure reason.
+
+- id: linux-certbot-failed
+  title: Certbot certificate issuance failed
+  category: linux
+  severity: medium
+  risk: medium
+  patterns:
+    - "certbot"
+    - "unauthorized"
+    - "challenge failed"
+  keywords:
+    - ssl
+    - certificate
+    - letsencrypt
+  summary: Certbot could not complete domain validation for a certificate request.
+  causes:
+    - DNS does not point to the server.
+    - HTTP challenge traffic cannot reach the server.
+    - The web server configuration blocks the challenge path.
+  checks:
+    - label: Check DNS resolution
+      command: "dig +short example.com"
+      risk: low
+    - label: Test HTTP reachability
+      command: "curl -I http://example.com/.well-known/acme-challenge/test"
+      risk: low
+  avoid:
+    - Do not disable firewalls or change DNS records without confirming the validation method.
+
+- id: linux-ssh-publickey-denied
+  title: SSH public key denied
+  category: linux
+  severity: medium
+  risk: low
+  patterns:
+    - "Permission denied (publickey)"
+    - "publickey"
+  keywords:
+    - ssh
+    - key
+  summary: SSH authentication failed because the server did not accept the offered public key.
+  causes:
+    - The wrong private key is being used.
+    - The public key is missing from authorized_keys.
+    - Server-side SSH permissions are too open or too restrictive.
+  checks:
+    - label: Run SSH with verbose auth output
+      command: "ssh -vvv user@host"
+      risk: low
+    - label: Check loaded local keys
+      command: "ssh-add -l"
+      risk: low
+  avoid:
+    - Do not paste private keys into tickets or chat while debugging.

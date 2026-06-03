@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import asdict
+import json
 import sys
 from pathlib import Path
 
@@ -8,6 +10,11 @@ from log_to_playbook import __version__
 from log_to_playbook.analyzer import analyze_log
 from log_to_playbook.loader import load_builtin_playbooks
 from log_to_playbook.renderer import render_json, render_markdown, render_text
+from log_to_playbook.updates import (
+    get_packaged_changelog,
+    get_update_info,
+    render_update_info,
+)
 
 FORMATS = {
     "json": render_json,
@@ -106,6 +113,37 @@ def build_parser() -> argparse.ArgumentParser:
         help="Write the template to a file instead of stdout.",
     )
 
+    changelog = subparsers.add_parser(
+        "changelog",
+        help="Show the packaged changelog.",
+    )
+    changelog.add_argument(
+        "--output",
+        help="Write the changelog to a file instead of stdout.",
+    )
+
+    update_info = subparsers.add_parser(
+        "update-info",
+        help="Show current version, latest release, and changelog links.",
+    )
+    update_info.add_argument(
+        "--no-network",
+        action="store_true",
+        help="Skip the GitHub release check and show local update information.",
+    )
+    update_info.add_argument(
+        "--format",
+        choices=["json", "text"],
+        default="text",
+        help="Output format.",
+    )
+    update_info.add_argument(
+        "--timeout",
+        type=float,
+        default=5.0,
+        help="Network timeout in seconds for the GitHub release check.",
+    )
+
     return parser
 
 
@@ -121,6 +159,18 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "new-playbook":
         return _write_output(PLAYBOOK_TEMPLATE, args.output)
+    if args.command == "changelog":
+        return _write_output(get_packaged_changelog(), args.output)
+    if args.command == "update-info":
+        info = get_update_info(
+            check_remote=not args.no_network,
+            timeout=args.timeout,
+        )
+        if args.format == "json":
+            rendered = json.dumps(asdict(info), indent=2, ensure_ascii=False)
+        else:
+            rendered = render_update_info(info)
+        return _write_output(rendered, None)
 
     parser.print_help()
     return 0

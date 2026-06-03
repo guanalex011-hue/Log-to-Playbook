@@ -102,6 +102,8 @@ Docker failed to start because the requested host port is already in use.
 | Export a report | `log2playbook analyze ./error.log --format markdown --output report.md` |
 | Validate playbooks | `log2playbook validate-playbooks` |
 | Create a playbook template | `log2playbook new-playbook` |
+| Show changelog | `log2playbook changelog` |
+| Check update info | `log2playbook update-info` |
 
 ## Supported Categories
 
@@ -175,9 +177,9 @@ python -m build
 
 ## Project Status
 
-Current version: `0.1.1`
+Current version: `0.1.2`
 
-This is an early MVP. The core CLI, built-in playbooks, redaction, output renderers, package metadata, examples, and release artifacts are in place. The next major additions are a local web UI, optional AI explanations, and integrations such as GitHub Actions and editor extensions.
+This is an early MVP. The core CLI, built-in playbooks, redaction, output renderers, package metadata, update/changelog commands, examples, and release artifacts are in place. The next major additions are a local web UI, optional AI explanations, and integrations such as GitHub Actions and editor extensions.
 
 ## License
 

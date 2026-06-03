@@ -53,3 +53,29 @@ log2playbook analyze ./error.log --format markdown --output report.md
 ```bash
 log2playbook validate-playbooks
 ```
+
+## View Changelog
+
+```bash
+log2playbook changelog
+```
+
+## Check Update Information
+
+Check the installed version against the latest GitHub release:
+
+```bash
+log2playbook update-info
+```
+
+Show local update information without a network request:
+
+```bash
+log2playbook update-info --no-network
+```
+
+Render update information as JSON:
+
+```bash
+log2playbook update-info --format json
+```

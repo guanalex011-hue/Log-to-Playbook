@@ -29,7 +29,7 @@ def test_cli_version() -> None:
     result = run_cli("--version")
 
     assert result.returncode == 0
-    assert "0.1.1" in result.stdout
+    assert "0.1.2" in result.stdout
 
 
 def test_cli_analyze_file_as_json(tmp_path) -> None:
@@ -53,6 +53,24 @@ def test_cli_validate_playbooks() -> None:
     assert result.returncode == 0
     assert "Validated" in result.stdout
     assert "playbooks" in result.stdout
+
+
+def test_cli_changelog_shows_packaged_changelog() -> None:
+    result = run_cli("changelog")
+
+    assert result.returncode == 0
+    assert "# Changelog" in result.stdout
+    assert "0.1.2" in result.stdout
+    assert "update-info" in result.stdout
+
+
+def test_cli_update_info_can_run_without_network() -> None:
+    result = run_cli("update-info", "--no-network")
+
+    assert result.returncode == 0
+    assert "Current version: 0.1.2" in result.stdout
+    assert "Latest version: not checked" in result.stdout
+    assert "Changelog:" in result.stdout
 
 
 def test_main_without_command_prints_help(capsys) -> None:

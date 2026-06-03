@@ -4,7 +4,10 @@ import json
 import os
 import subprocess
 import sys
+from io import StringIO
 from pathlib import Path
+
+from log_to_playbook.cli import main
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
@@ -50,3 +53,35 @@ def test_cli_validate_playbooks() -> None:
     assert result.returncode == 0
     assert "Validated" in result.stdout
     assert "playbooks" in result.stdout
+
+
+def test_main_without_command_prints_help(capsys) -> None:
+    exit_code = main([])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "Turn logs and stack traces" in captured.out
+
+
+def test_main_analyze_stdin_markdown(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(
+        sys,
+        "stdin",
+        StringIO("ModuleNotFoundError: No module named 'pandas'"),
+    )
+
+    exit_code = main(["analyze", "-", "--format", "markdown"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "# Log Diagnosis Report" in captured.out
+    assert "Python module not found" in captured.out
+
+
+def test_main_new_playbook_writes_template(tmp_path) -> None:
+    output = tmp_path / "playbook.yml"
+
+    exit_code = main(["new-playbook", "--output", str(output)])
+
+    assert exit_code == 0
+    assert "your-playbook-id" in output.read_text(encoding="utf-8")

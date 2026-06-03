@@ -31,3 +31,14 @@ def test_render_text_is_human_readable() -> None:
 
     assert "Detected:" in rendered
     assert "Checklist:" in rendered
+
+
+def test_renderers_include_ai_suggestion() -> None:
+    result = analyze_log("ModuleNotFoundError: No module named 'pandas'")
+    result.ai_suggestion = "Check the active virtual environment first."
+
+    assert "AI Suggestion" in render_markdown(result)
+    assert "Check the active virtual environment first." in render_text(result)
+    assert json.loads(render_json(result))["ai_suggestion"] == (
+        "Check the active virtual environment first."
+    )

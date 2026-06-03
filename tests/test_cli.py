@@ -29,7 +29,7 @@ def test_cli_version() -> None:
     result = run_cli("--version")
 
     assert result.returncode == 0
-    assert "0.1.2" in result.stdout
+    assert "0.2.0" in result.stdout
 
 
 def test_cli_analyze_file_as_json(tmp_path) -> None:
@@ -103,3 +103,58 @@ def test_main_new_playbook_writes_template(tmp_path) -> None:
 
     assert exit_code == 0
     assert "your-playbook-id" in output.read_text(encoding="utf-8")
+
+
+def test_main_ai_configure_show_and_set_model(tmp_path, monkeypatch, capsys) -> None:
+    monkeypatch.setenv("LOG2PLAYBOOK_CONFIG", str(tmp_path / "config.json"))
+
+    configure_code = main(
+        [
+            "ai",
+            "configure",
+            "--provider-name",
+            "manual",
+            "--base-url",
+            "https://api.example.com/v1",
+            "--api-key-env",
+            "EXAMPLE_API_KEY",
+            "--model",
+            "example-model",
+        ]
+    )
+    show_code = main(["ai", "show"])
+    model_code = main(["ai", "set-model", "better-model"])
+    show_again_code = main(["ai", "show"])
+
+    captured = capsys.readouterr()
+    assert configure_code == 0
+    assert show_code == 0
+    assert model_code == 0
+    assert show_again_code == 0
+    assert "Provider: manual" in captured.out
+    assert "Base URL: https://api.example.com/v1" in captured.out
+    assert "Default model: better-model" in captured.out
+
+
+def test_main_ai_test_dry_run(tmp_path, monkeypatch, capsys) -> None:
+    monkeypatch.setenv("LOG2PLAYBOOK_CONFIG", str(tmp_path / "config.json"))
+    main(
+        [
+            "ai",
+            "configure",
+            "--provider-name",
+            "local",
+            "--base-url",
+            "http://localhost:1234/v1",
+            "--model",
+            "local-model",
+            "--no-api-key-required",
+        ]
+    )
+
+    exit_code = main(["ai", "test", "--dry-run"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "Configuration OK" in captured.out
+    assert "http://localhost:1234/v1/chat/completions" in captured.out

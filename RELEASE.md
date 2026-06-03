@@ -18,7 +18,7 @@ Log-to-Playbook uses semantic versioning.
 6. Create and push a version tag:
 
    ```bash
-   git tag v0.1.0
+   git tag v0.1.1
    git push origin main --tags
    ```
 
@@ -29,5 +29,5 @@ Log-to-Playbook uses semantic versioning.
 If the automated release workflow is unavailable, create a release manually:
 
 ```bash
-gh release create v0.1.0 --title "v0.1.0" --notes-file CHANGELOG.md
+gh release create v0.1.1 --title "v0.1.1" --notes-file CHANGELOG.md
 ```

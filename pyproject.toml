@@ -4,10 +4,12 @@ build-backend = "hatchling.build"
 
 [project]
 name = "log-to-playbook"
-version = "0.1.0"
+version = "0.1.1"
 description = "Turn logs and stack traces into practical debugging playbooks."
 readme = "README.md"
 requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
   { name = "Log-to-Playbook Contributors" }
 ]
@@ -25,7 +27,8 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Topic :: Software Development :: Debuggers",
-  "Topic :: System :: Logging"
+  "Topic :: System :: Logging",
+  "Typing :: Typed"
 ]
 
 [project.optional-dependencies]
@@ -33,7 +36,12 @@ dev = [
   "pytest>=7.4",
   "pytest-cov>=4.1",
   "ruff>=0.6",
-  "build>=1.2"
+  "build>=1.2",
+  "mypy>=1.10",
+  "types-PyYAML>=6.0.12"
+]
+security = [
+  "pip-audit>=2.7"
 ]
 
 [project.scripts]
@@ -41,8 +49,10 @@ log2playbook = "log_to_playbook.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/guanalex011-hue/Log-to-Playbook"
+Documentation = "https://github.com/guanalex011-hue/Log-to-Playbook/tree/main/docs"
 Repository = "https://github.com/guanalex011-hue/Log-to-Playbook"
 Issues = "https://github.com/guanalex011-hue/Log-to-Playbook/issues"
+Changelog = "https://github.com/guanalex011-hue/Log-to-Playbook/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/log_to_playbook"]
@@ -57,3 +67,10 @@ target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+strict_equality = true

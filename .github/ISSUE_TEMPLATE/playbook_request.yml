@@ -1,0 +1,35 @@
+name: Playbook request
+description: Request or propose a new built-in diagnostic playbook.
+title: "playbook: "
+body:
+  - type: markdown
+    attributes:
+      value: "Only share redacted logs. Do not paste real secrets, tokens, or customer data."
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - docker
+        - laravel
+        - linux
+        - node
+        - python
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: patterns
+    attributes:
+      label: Redacted log patterns
+      description: Paste exact phrases or regex ideas that should match.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: checklist
+    attributes:
+      label: Safe diagnostic checklist
+      description: List read-only or low-risk checks first.
+    validations:
+      required: true

@@ -4,6 +4,18 @@ All notable changes to Log-to-Playbook will be documented in this file.
 
 The project follows semantic versioning.
 
+## [0.1.1] - 2026-06-03
+
+### Added
+
+- MIT license and package license metadata.
+- Contributor, security, support, governance, and code of conduct documents.
+- Issue forms, pull request template, CODEOWNERS, Dependabot, and security
+  workflow scaffolding.
+- Usage and playbook authoring documentation.
+- Example log and rendered report fixtures.
+- Type-checking and coverage threshold steps for CI.
+
 ## [0.1.0] - 2026-06-03
 
 ### Added

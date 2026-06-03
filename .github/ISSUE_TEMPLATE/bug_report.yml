@@ -1,0 +1,37 @@
+name: Bug report
+description: Report a reproducible problem with the CLI or a built-in playbook.
+title: "bug: "
+body:
+  - type: markdown
+    attributes:
+      value: "Please redact secrets, tokens, emails, and private hostnames before submitting logs."
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: Paste the exact command you ran.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Redacted log sample
+      description: Include the smallest log sample that reproduces the issue.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      description: What should Log-to-Playbook have returned?
+    validations:
+      required: true

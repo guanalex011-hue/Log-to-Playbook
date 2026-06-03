@@ -2,6 +2,10 @@
 
 Paste an error. Get a checklist.
 
+[![Version](https://img.shields.io/badge/version-0.1.1-blue)](https://github.com/guanalex011-hue/Log-to-Playbook/releases)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 Log-to-Playbook is a local-first CLI tool that turns error logs, stack traces,
 terminal output, and deployment failures into practical debugging playbooks.
 
@@ -37,7 +41,7 @@ source of truth.
 
 ## Current Version
 
-The initial implementation is versioned as **v0.1.0**.
+The current implementation is versioned as **v0.1.1**.
 
 MVP capabilities:
 
@@ -65,6 +69,14 @@ After installation, the CLI is available as:
 ```bash
 log2playbook --version
 ```
+
+## Documentation
+
+- [Usage guide](docs/usage.md)
+- [Playbook authoring guide](docs/playbook-authoring.md)
+- [Release process](RELEASE.md)
+- [Contributing guide](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
 
 ## Usage
 
@@ -244,7 +256,7 @@ kept out of built-in playbooks unless they are clearly marked and avoidable.
 ## Release
 
 The project uses semantic versioning. The current release line starts at
-`0.1.0`.
+`0.1.x`.
 
 Release files:
 
@@ -263,4 +275,4 @@ Release files:
 
 ## License
 
-No license has been declared yet.
+Log-to-Playbook is released under the [MIT License](LICENSE).

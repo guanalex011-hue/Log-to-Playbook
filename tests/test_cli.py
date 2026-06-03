@@ -29,7 +29,7 @@ def test_cli_version() -> None:
     result = run_cli("--version")
 
     assert result.returncode == 0
-    assert "0.1.0" in result.stdout
+    assert "0.1.1" in result.stdout
 
 
 def test_cli_analyze_file_as_json(tmp_path) -> None:

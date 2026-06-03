@@ -31,7 +31,10 @@ def test_cli_version() -> None:
 
 def test_cli_analyze_file_as_json(tmp_path) -> None:
     log_file = tmp_path / "error.log"
-    log_file.write_text("SQLSTATE[HY000]: General error: 1364 Field 'name'", encoding="utf-8")
+    log_file.write_text(
+        "SQLSTATE[HY000]: General error: 1364 Field 'name'",
+        encoding="utf-8",
+    )
 
     result = run_cli("analyze", str(log_file), "--format", "json")
 

@@ -15,7 +15,10 @@ REDACTION_RULES: tuple[tuple[str, re.Pattern[str], str], ...] = (
     ),
     (
         "bearer_token",
-        re.compile(r"(Authorization:\s*Bearer\s+)[A-Za-z0-9._~+/=-]+", flags=re.IGNORECASE),
+        re.compile(
+            r"(Authorization:\s*Bearer\s+)[A-Za-z0-9._~+/=-]+",
+            flags=re.IGNORECASE,
+        ),
         r"\1[REDACTED_TOKEN]",
     ),
     (

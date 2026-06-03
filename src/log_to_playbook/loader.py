@@ -23,7 +23,12 @@ def load_builtin_playbooks() -> list[Playbook]:
     for resource in sorted(playbook_root.iterdir(), key=lambda item: item.name):
         if resource.suffix not in {".yaml", ".yml"}:
             continue
-        playbooks.extend(load_playbooks_from_text(resource.read_text(encoding="utf-8"), source=resource.name))
+        playbooks.extend(
+            load_playbooks_from_text(
+                resource.read_text(encoding="utf-8"),
+                source=resource.name,
+            )
+        )
 
     return playbooks
 

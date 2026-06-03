@@ -20,7 +20,9 @@ def analyze_log(
     """Analyze log text and return the best matching playbook result."""
     redacted = redact_text(text, privacy=privacy)
     normalized = normalize_text(redacted.text)
-    available_playbooks = list(playbooks) if playbooks is not None else load_builtin_playbooks()
+    available_playbooks = (
+        list(playbooks) if playbooks is not None else load_builtin_playbooks()
+    )
     matches = match_playbooks(normalized, available_playbooks, category=category)
 
     if not matches:
@@ -30,7 +32,11 @@ def analyze_log(
             category=category,
             confidence=0,
             risk="unknown",
-            summary="No built-in playbook matched this log. Start with a safe, read-only inspection of the surrounding stack trace and recent changes.",
+            summary=(
+                "No built-in playbook matched this log. Start with a safe, "
+                "read-only inspection of the surrounding stack trace and "
+                "recent changes."
+            ),
             causes=[],
             checks=[],
             avoid=[],

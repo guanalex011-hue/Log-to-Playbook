@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
 from dataclasses import dataclass
-import re
 
 from log_to_playbook.models import Playbook
 from log_to_playbook.normalizer import normalize_text
@@ -41,7 +41,11 @@ def match_playbooks(
         return []
 
     matched_categories = {candidate.playbook.category for candidate in candidates}
-    penalty = AMBIGUITY_PENALTY if category is None and len(matched_categories) > 1 else 0
+    penalty = (
+        AMBIGUITY_PENALTY
+        if category is None and len(matched_categories) > 1
+        else 0
+    )
     adjusted = [
         Match(
             playbook=candidate.playbook,
@@ -51,7 +55,11 @@ def match_playbooks(
         )
         for candidate in candidates
     ]
-    return sorted(adjusted, key=lambda item: (item.score, item.playbook.id), reverse=True)
+    return sorted(
+        adjusted,
+        key=lambda item: (item.score, item.playbook.id),
+        reverse=True,
+    )
 
 
 def _score_playbook(

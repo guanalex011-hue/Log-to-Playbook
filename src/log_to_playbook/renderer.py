@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import asdict
 import json
+from dataclasses import asdict
 
 from log_to_playbook.models import AnalysisResult
 
@@ -63,7 +63,10 @@ def render_markdown(result: AnalysisResult) -> str:
                 lines.append(f"   `{check.command}`")
             lines.append(f"   Risk: {check.risk}")
     else:
-        lines.append("1. Inspect the full error context and recent changes before changing production state.")
+        lines.append(
+            "1. Inspect the full error context and recent changes before "
+            "changing production state."
+        )
 
     lines.extend(["", "## Commands", ""])
     commands = [check.command for check in result.checks if check.command]
@@ -84,7 +87,10 @@ def render_markdown(result: AnalysisResult) -> str:
 
     if result.redactions:
         lines.extend(["", "## Redactions", ""])
-        lines.extend(f"- {name}: {count}" for name, count in sorted(result.redactions.items()))
+        lines.extend(
+            f"- {name}: {count}"
+            for name, count in sorted(result.redactions.items())
+        )
 
     if result.redacted_log is not None:
         lines.extend(["", "## Redacted Log", "", "```text", result.redacted_log, "```"])
@@ -111,7 +117,10 @@ def render_text(result: AnalysisResult) -> str:
                 lines.append(f"   {check.command}")
             lines.append(f"   Risk: {check.risk}")
     else:
-        lines.append("1. Inspect the full error context and recent changes before changing production state.")
+        lines.append(
+            "1. Inspect the full error context and recent changes before "
+            "changing production state."
+        )
 
     if result.avoid:
         lines.extend(["", "Risk notes:"])

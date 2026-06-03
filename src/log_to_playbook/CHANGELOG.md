@@ -4,6 +4,18 @@ All notable changes to Log-to-Playbook will be documented in this file.
 
 The project follows semantic versioning.
 
+## [0.2.0] - 2026-06-03
+
+### Added
+
+- OpenAI-compatible AI provider configuration via `log2playbook ai configure`.
+- Manual provider base URL support for OpenAI, OpenRouter, local gateways, and
+  other chat-completions-compatible providers.
+- `log2playbook ai show`, `log2playbook ai set-model`, and `log2playbook ai test`.
+- Optional API-key-free mode for local providers.
+- `log2playbook analyze --ai` for provider-backed explanations while keeping
+  pattern-based playbooks as the source of truth.
+
 ## [0.1.2] - 2026-06-03
 
 ### Added

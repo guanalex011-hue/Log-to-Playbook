@@ -5,7 +5,6 @@ import os
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -127,7 +126,8 @@ def call_chat_completion(
     api_key = resolve_api_key(config)
     if config.api_key_required and not api_key:
         raise AIProviderError(
-            f"API key is required. Set {config.api_key_env} or reconfigure the provider."
+            "API key is required. "
+            f"Set {config.api_key_env} or reconfigure the provider."
         )
 
     payload: dict[str, object] = {
@@ -190,7 +190,7 @@ def test_ai_provider(
     )
 
 
-test_ai_provider.__test__ = False
+test_ai_provider.__test__ = False  # type: ignore[attr-defined]
 
 
 def build_explanation_messages(

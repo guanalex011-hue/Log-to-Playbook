@@ -12,8 +12,8 @@ def test_get_packaged_changelog_contains_latest_entry() -> None:
     changelog = get_packaged_changelog()
 
     assert changelog.startswith("# Changelog")
-    assert "## [0.1.2]" in changelog
-    assert "update-info" in changelog
+    assert "## [0.2.0]" in changelog
+    assert "OpenAI-compatible" in changelog
 
 
 def test_get_update_info_reports_newer_release() -> None:

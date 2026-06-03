@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import pytest
 
@@ -137,7 +136,14 @@ def test_call_chat_completion_allows_local_provider_without_key() -> None:
         timeout=5,
     )
 
-    assert call_chat_completion(config, [{"role": "user", "content": "hi"}], requester=requester) == "local ok"
+    assert (
+        call_chat_completion(
+            config,
+            [{"role": "user", "content": "hi"}],
+            requester=requester,
+        )
+        == "local ok"
+    )
 
 
 def test_call_chat_completion_requires_key_when_configured(monkeypatch) -> None:

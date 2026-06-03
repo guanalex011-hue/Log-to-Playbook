@@ -79,3 +79,40 @@ Render update information as JSON:
 ```bash
 log2playbook update-info --format json
 ```
+
+## Configure an AI Provider
+
+Use any OpenAI-compatible chat completions provider by setting a base URL,
+API-key source, and default model:
+
+```bash
+log2playbook ai configure \
+  --provider-name openai \
+  --base-url https://api.openai.com/v1 \
+  --api-key-env OPENAI_API_KEY \
+  --model gpt-4o-mini
+```
+
+Show the saved configuration:
+
+```bash
+log2playbook ai show
+```
+
+Set a new default model:
+
+```bash
+log2playbook ai set-model gpt-4o-mini
+```
+
+Test the provider:
+
+```bash
+log2playbook ai test
+```
+
+Add an AI suggestion to a report:
+
+```bash
+log2playbook analyze ./error.log --ai --format markdown
+```

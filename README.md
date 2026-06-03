@@ -2,7 +2,7 @@
 
 Paste an error. Get a checklist.
 
-[![Version](https://img.shields.io/badge/version-0.1.1-blue)](https://github.com/guanalex011-hue/Log-to-Playbook/releases)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue)](https://github.com/guanalex011-hue/Log-to-Playbook/releases)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
@@ -23,7 +23,7 @@ It works without AI. Built-in YAML playbooks do the matching, so your logs can s
 Install from GitHub:
 
 ```bash
-python -m pip install "log-to-playbook @ git+https://github.com/guanalex011-hue/Log-to-Playbook.git@v0.1.1"
+python -m pip install "log-to-playbook @ git+https://github.com/guanalex011-hue/Log-to-Playbook.git@v0.2.0"
 ```
 
 Analyze a log file:
@@ -104,6 +104,9 @@ Docker failed to start because the requested host port is already in use.
 | Create a playbook template | `log2playbook new-playbook` |
 | Show changelog | `log2playbook changelog` |
 | Check update info | `log2playbook update-info` |
+| Configure AI provider | `log2playbook ai configure --base-url URL --model MODEL` |
+| Test AI provider | `log2playbook ai test` |
+| Set default AI model | `log2playbook ai set-model MODEL` |
 
 ## Supported Categories
 
@@ -143,6 +146,50 @@ Log-to-Playbook is designed to be safe by default:
 
 Redacted values include API keys, bearer tokens, password-like environment variables, private key blocks, database URLs, and optional email addresses when `--privacy` is enabled.
 
+## AI Provider Integration
+
+Log-to-Playbook can add an optional AI explanation layer using any OpenAI-compatible chat completions provider.
+
+Configure a provider with a manual base URL and default model:
+
+```bash
+log2playbook ai configure \
+  --provider-name openai \
+  --base-url https://api.openai.com/v1 \
+  --api-key-env OPENAI_API_KEY \
+  --model gpt-4o-mini
+```
+
+For local or gateway providers that do not require an API key:
+
+```bash
+log2playbook ai configure \
+  --provider-name local \
+  --base-url http://localhost:1234/v1 \
+  --model local-model \
+  --no-api-key-required
+```
+
+Test the provider:
+
+```bash
+log2playbook ai test
+```
+
+Set the default model:
+
+```bash
+log2playbook ai set-model gpt-4o-mini
+```
+
+Analyze with AI suggestions:
+
+```bash
+log2playbook analyze ./error.log --ai --format markdown
+```
+
+AI mode is optional. Pattern-based playbooks remain the source of truth, and logs are redacted before being sent to the configured provider.
+
 ## Development Setup
 
 Clone the repository:
@@ -170,6 +217,7 @@ python -m build
 ## Documentation
 
 - [Usage guide](docs/usage.md)
+- [AI provider guide](docs/ai-providers.md)
 - [Playbook authoring guide](docs/playbook-authoring.md)
 - [Contributing guide](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
@@ -177,9 +225,9 @@ python -m build
 
 ## Project Status
 
-Current version: `0.1.2`
+Current version: `0.2.0`
 
-This is an early MVP. The core CLI, built-in playbooks, redaction, output renderers, package metadata, update/changelog commands, examples, and release artifacts are in place. The next major additions are a local web UI, optional AI explanations, and integrations such as GitHub Actions and editor extensions.
+This is an early MVP. The core CLI, built-in playbooks, redaction, output renderers, OpenAI-compatible AI provider integration, package metadata, update/changelog commands, examples, and release artifacts are in place. The next major additions are a local web UI and integrations such as GitHub Actions and editor extensions.
 
 ## License
 

@@ -80,6 +80,27 @@ Render update information as JSON:
 log2playbook update-info --format json
 ```
 
+## Run Health Checks
+
+Check the local CLI, packaged playbooks, AI provider configuration, and update
+information:
+
+```bash
+log2playbook doctor
+```
+
+Skip the GitHub release check in offline environments:
+
+```bash
+log2playbook doctor --no-network
+```
+
+Render a structured health report for automation:
+
+```bash
+log2playbook doctor --no-network --format json
+```
+
 ## Configure an AI Provider
 
 Use any OpenAI-compatible chat completions provider by setting a base URL,

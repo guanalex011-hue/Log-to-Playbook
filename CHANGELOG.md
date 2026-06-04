@@ -4,6 +4,15 @@ All notable changes to Log-to-Playbook will be documented in this file.
 
 The project follows semantic versioning.
 
+## [0.3.0] - 2026-06-04
+
+### Added
+
+- `log2playbook doctor` command for checking package health, Python runtime,
+  built-in playbooks, AI provider configuration, and update information.
+- JSON output for doctor reports via `log2playbook doctor --format json`.
+- Offline-safe doctor mode via `log2playbook doctor --no-network`.
+
 ## [0.2.0] - 2026-06-03
 
 ### Added

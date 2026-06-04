@@ -20,6 +20,7 @@ from log_to_playbook.ai import (
     test_ai_provider,
 )
 from log_to_playbook.analyzer import analyze_log
+from log_to_playbook.doctor import render_doctor_report, run_doctor
 from log_to_playbook.loader import load_builtin_playbooks
 from log_to_playbook.redactor import redact_text
 from log_to_playbook.renderer import render_json, render_markdown, render_text
@@ -162,6 +163,28 @@ def build_parser() -> argparse.ArgumentParser:
         help="Network timeout in seconds for the GitHub release check.",
     )
 
+    doctor = subparsers.add_parser(
+        "doctor",
+        help="Run local health checks for the CLI, playbooks, AI config, and updates.",
+    )
+    doctor.add_argument(
+        "--no-network",
+        action="store_true",
+        help="Skip the GitHub release check.",
+    )
+    doctor.add_argument(
+        "--format",
+        choices=["json", "text"],
+        default="text",
+        help="Output format.",
+    )
+    doctor.add_argument(
+        "--timeout",
+        type=float,
+        default=5.0,
+        help="Network timeout in seconds for the GitHub release check.",
+    )
+
     ai = subparsers.add_parser(
         "ai",
         help="Configure and test OpenAI-compatible AI providers.",
@@ -229,6 +252,17 @@ def main(argv: list[str] | None = None) -> int:
         else:
             rendered = render_update_info(info)
         return _write_output(rendered, None)
+    if args.command == "doctor":
+        report = run_doctor(
+            check_remote=not args.no_network,
+            timeout=args.timeout,
+        )
+        if args.format == "json":
+            rendered = json.dumps(asdict(report), indent=2, ensure_ascii=False)
+        else:
+            rendered = render_doctor_report(report)
+        _write_output(rendered, None)
+        return 1 if report.status == "error" else 0
     if args.command == "ai":
         return _ai(args)
 

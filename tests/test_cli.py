@@ -29,7 +29,7 @@ def test_cli_version() -> None:
     result = run_cli("--version")
 
     assert result.returncode == 0
-    assert "0.2.0" in result.stdout
+    assert "0.3.0" in result.stdout
 
 
 def test_cli_analyze_file_as_json(tmp_path) -> None:
@@ -68,9 +68,67 @@ def test_cli_update_info_can_run_without_network() -> None:
     result = run_cli("update-info", "--no-network")
 
     assert result.returncode == 0
-    assert "Current version: 0.2.0" in result.stdout
+    assert "Current version: 0.3.0" in result.stdout
     assert "Latest version: not checked" in result.stdout
     assert "Changelog:" in result.stdout
+
+
+def test_main_doctor_reports_warning_without_ai_config(
+    tmp_path,
+    monkeypatch,
+    capsys,
+) -> None:
+    monkeypatch.setenv("LOG2PLAYBOOK_CONFIG", str(tmp_path / "missing.json"))
+
+    exit_code = main(["doctor", "--no-network"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "Log-to-Playbook Doctor" in captured.out
+    assert "Overall: warning" in captured.out
+    assert "Package: ok" in captured.out
+    assert "Built-in playbooks: ok" in captured.out
+    assert "AI provider: warning" in captured.out
+    assert "not configured" in captured.out
+    assert "Update check: skipped" in captured.out
+
+
+def test_main_doctor_json_reports_configured_ai(
+    tmp_path,
+    monkeypatch,
+    capsys,
+) -> None:
+    monkeypatch.setenv("LOG2PLAYBOOK_CONFIG", str(tmp_path / "config.json"))
+    main(
+        [
+            "ai",
+            "configure",
+            "--provider-name",
+            "local",
+            "--base-url",
+            "http://localhost:1234/v1",
+            "--model",
+            "local-model",
+            "--no-api-key-required",
+        ]
+    )
+    capsys.readouterr()
+
+    exit_code = main(["doctor", "--no-network", "--format", "json"])
+
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    checks = {check["name"]: check for check in payload["checks"]}
+    assert exit_code == 0
+    assert payload["status"] == "ok"
+    assert payload["version"] == "0.3.0"
+    assert checks["package"]["status"] == "ok"
+    assert checks["playbooks"]["details"]["count"] >= 30
+    assert checks["ai_provider"]["status"] == "ok"
+    assert checks["ai_provider"]["details"]["provider"] == "local"
+    assert checks["ai_provider"]["details"]["model"] == "local-model"
+    assert checks["ai_provider"]["details"]["api_key"] == "not required"
+    assert checks["update_check"]["status"] == "skipped"
 
 
 def test_main_without_command_prints_help(capsys) -> None:
